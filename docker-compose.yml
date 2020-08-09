@@ -1,0 +1,16 @@
+version: "3.5"
+
+services:
+  sidecar:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: netswatch:sidecar
+    environment:
+      - ETCD_ENDPOINT=http://localhost:2379
+      - ETCD_USERNAME=flannel
+      - ETCD_PASSWORD=flannel
+      - LOOP=60
+    ports:
+      - "5000:5000"
+    restart: always

@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+  <title>Netswatch Topology</title>
+  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <script type="text/javascript" src="{{ url_for('static', filename='vis-network.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='axios.min.js') }}"></script>
+  <style type="text/css">
+    #topo {
+      /* width: 100%; */
+        height: 100%;
+        float: left;
+        width: 70%;
+      /* background: #f0e68c; */
+    }
+    html, body {
+        height: 100%;
+        margin: 0px;
+        text-align: center;
+        font-family: Consolas;
+    }
+    #info {
+        float: right;
+        width: 30%;
+        text-align: left;
+    }
+    .total {
+      color: green;
+      font-weight: bold;
+    }
+    b {
+      color: red;
+    }
+    
+  </style>
+</head>
+<body>
+  <h2>
+    <img src="{{ url_for('static', filename='logo.png') }}"></img>
+    Netswatch Node Topology
+  </h2>
+  <div id="info"></div>
+  <div id="topo"></div>
+  <script type="text/javascript" src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
