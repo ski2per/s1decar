@@ -12,7 +12,6 @@ from flask import Flask, render_template, jsonify
 app = Flask(__name__)
 
 ETCD_ENDPOINT = os.getenv("ETCD_ENDPOINT", "http://localhost:2379")
-# ETCD_ENDPOINT = "http://etcd.cetcxl.com:2379"
 ETCD_USERNAME = os.getenv("ETCD_USERNAME", "")
 ETCD_PASSWORD = os.getenv("ETCD_PASSWORD", "")
 NODE_API = f"{ETCD_ENDPOINT}/v2/keys/coreos.com/network/nodes"
@@ -286,8 +285,9 @@ def generate_topology():
 
 
 if __name__ == "__main__":
-    flask_thread = threading.Thread(target=app.run, kwargs={"host": "0.0.0.0"})
-    flask_thread.start()
-    while True:
-        sync_nodes_subnets()
-        time.sleep(LOOP)
+    # flask_thread = threading.Thread(target=app.run, kwargs={"host": "0.0.0.0"})
+    # flask_thread.start()
+    # while True:
+    #     sync_nodes_subnets()
+    #     time.sleep(LOOP)
+    app.run(host="0.0.0.0", debug=True)
