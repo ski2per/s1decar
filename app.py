@@ -1,12 +1,9 @@
 import os
 import re
 import json
-import time
 import logging
-import threading
 import itertools
 import requests
-from requests.auth import HTTPBasicAuth
 from flask import Flask, render_template, jsonify
 
 app = Flask(__name__)
@@ -14,8 +11,8 @@ app = Flask(__name__)
 ETCD_ENDPOINT = os.getenv("ETCD_ENDPOINT", "http://localhost:2379")
 ETCD_USERNAME = os.getenv("ETCD_USERNAME", "")
 ETCD_PASSWORD = os.getenv("ETCD_PASSWORD", "")
-NODE_API = f"{ETCD_ENDPOINT}/v2/keys/coreos.com/network/nodes"
-SUBNET_API = f"{ETCD_ENDPOINT}/v2/keys/coreos.com/network/subnets"
+NODE_API = f"{ETCD_ENDPOINT}/v2/keys/netswatch/network/nodes"
+SUBNET_API = f"{ETCD_ENDPOINT}/v2/keys/netswatch/network/subnets"
 # RAW_NODES = []
 ROUTER_EDGE_WIDTH = 1
 ROUTER_BACKGROUND = "#1982C4"
@@ -70,48 +67,36 @@ def parse_etcd_payload(payload) -> list:
     """
     parse etcd API response, and return list like this:
     [
-        {'key': '/coreos.com/network/nodes/ted.com/10.14.128.0', 'value': '{"node_type": "node"}', 'modifiedIndex': 149, 'createdIndex': 149},
-        {'key': '/coreos.com/network/nodes/ted.com/10.13.112.0', 'value': '{"node_type": "router"}', 'modifiedIndex': 102, 'createdIndex': 102}
+        {'key': '/netswatch/network/subnets/10.14.128.0-20', 'value': '{xxxxxxxxxxxxx}', 'modifiedIndex': 149, 'createdIndex': 149},
+        {'key': '/netswatch/network/subnets/10.13.112.0-20', 'value': '{xxxxxxxxxxxxx}', 'modifiedIndex': 102, 'createdIndex': 102}
     ]
     """
     data = json.loads(payload)
-    keys = []
-    nodes = data["node"].get("nodes", [])
-
-    if not nodes:
-        # If "nodes" list is not in "/coreos.com/network/subnets" or "/coreos.com/network/nodes",
-        # return directly.
-        return keys
-
-    for node in nodes:
-        try:
-            keys.extend(node["nodes"])
-        except KeyError:
-            LOG.error(f"KeyError while processing {node}")
-    return keys
+    return data["node"].get("nodes", [])
 
 
-def extract_node_info(route):
-    org, ip = route["key"].split("/")[-2:]
-    value = json.loads(route["value"])
-    node_type = value["node_type"]
-    meta = value["meta"]
+def extract_node_info(subnet):
+    ip = extract_ip(subnet["key"])
+    value = json.loads(subnet["value"])
+    org = value["Meta"]["OrgName"]
+    node_type = value["Meta"]["NodeType"]
+    meta = {'hostname': value["Meta"]["NodeName"], "host_ip": value["Meta"]["HostIP"]}
     return org, ip, node_type, meta
 
 
 def load_nodes():
     raw_nodes = []
-    response = requests.get(NODE_API, auth=(ETCD_USERNAME, ETCD_PASSWORD), params={"recursive": "true"})
+    response = requests.get(SUBNET_API, auth=(ETCD_USERNAME, ETCD_PASSWORD), params={"recursive": "true"})
+
     if response.status_code == 200:
         idx = 1
-        grp = 0
-        current_org = ""
+        orgs = {}
 
         for node in parse_etcd_payload(response.text):
             org, ip, node_type, meta = extract_node_info(node)
-            if org != current_org:
-                current_org = org
-                grp += 1
+            if org not in orgs:
+                orgs[org] = len(orgs) + 1
+            grp = orgs[org]
             raw_nodes.append({
                 "id": idx,
                 "ip": ip,
