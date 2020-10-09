@@ -129,12 +129,12 @@ function main() {
         axios.get(`${currentURL}topo`),
     ])
     .then(function(response){
-        nodes = new vis.DataSet(response[0].data.nodes)
-        edges = new vis.DataSet(response[0].data.edges)
-        var info = response[0].data.info
+        var nodes = new vis.DataSet(response[0].data.nodes);
+        var edges = new vis.DataSet(response[0].data.edges);
+        var info = response[0].data.info;
 
         var container = document.getElementById('topo');
-        var info_element = document.getElementById('info')
+        var info_element = document.getElementById('info');
         var data = {
             nodes: nodes,
             edges: edges
@@ -150,20 +150,74 @@ function main() {
                     background: "#FFFFFF"
                 }
             },
+        };
+
+        network = new vis.Network(container, data, options);
+
+
+        var nwNodes = response[0].data.nodes;
+        // info_element.innerHTML = `
+        var summaryHTML = `
+        <div>
+            <p class="total">Total(<b>${info.total}</b>) / 
+            router(<b>${info.router}</b>) /
+            node(<b>${info.node}</b>) / 
+            internal(<b>${info.internal}</b>)</p>
+        </div>
+        `;
+        var tableHeader = "<table><tr>\
+        <th>Location</th>\
+        <th>Hostname</th>\
+        <th>Host IP</th>\
+        <th>Net</th>\
+        <th>Node Type</th>\
+        </tr>"
+
+        var tableData = {}
+
+        nwNodes.forEach((item)=>{
+          if(tableData.hasOwnProperty(item.location)) {
+            tableData[item.location].push(item);
+          } else {
+            let items = [];
+            items.push(item);
+            tableData[item.location] = items;
+          }
+        });
+
+        console.log(tableData);
+
+        var tableBody = ""
+        for(var key in tableData) {
+          let nodes = tableData[key];
+          console.log(nodes.length);
+
+          let preTbody = `
+            <tr>
+            <td rowspan="${nodes.length+1}">${key}</td>
+            `
+          let tBody = ""
+          tableData[key].forEach((node) => {
+            console.log(node.location);
+            tBody += `
+            <tr>
+            <td>${node.hostname}</td>
+            <td>${node.hostip}</td>
+            <td>${node.net}</td>
+            <td>${node.nodetype}</td>
+            </tr>
+            `
+          });
+
+          tableBody += `${preTbody}` + tBody;
         }
 
-        network = new vis.Network(container, data, options)
-        info_element.innerHTML = `
-        <div>
-            <p class="total">Total nodes - ${info.total}</p>
-            <p>[router]: <b>${info.router}</b></p>
-            <p>[node]: <b>${info.node}</b></p>
-            <p>[internal]: <b>${info.internal}</b></p>
-        </div>
-        `
-//        info.forEach((ele) => {
-//            console.log(ele)
-//        })
+        // var tableBody = ""
+
+        var tableEnd = "</table>"
+
+        info_element.innerHTML = summaryHTML + tableHeader + tableBody + tableEnd
+
     })
     .catch(function(error){
     console.log(error)

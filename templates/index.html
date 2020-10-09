@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-  <title>Netswatch Topology</title>
+  <title>Netswatch Dashboard</title>
   <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
   <script type="text/javascript" src="{{ url_for('static', filename='vis-network.min.js') }}"></script>
   <script type="text/javascript" src="{{ url_for('static', filename='axios.min.js') }}"></script>
@@ -10,7 +10,7 @@
       /* width: 100%; */
         height: 100%;
         float: left;
-        width: 70%;
+        width: 60%;
       /* background: #f0e68c; */
     }
     html, body {
@@ -21,8 +21,9 @@
     }
     #info {
         float: right;
-        width: 30%;
+        width: 40%;
         text-align: left;
+        margin-bottom: 2rem;
     }
     .total {
       color: green;
@@ -31,16 +32,22 @@
     b {
       color: red;
     }
+    table, th, td {
+      border: 1px solid black;
+      border-collapse: collapse;
+      padding: 6px;
+      text-align: center;
+    }
     
   </style>
 </head>
 <body>
   <h2>
     <img src="{{ url_for('static', filename='logo.png') }}"></img>
-    Netswatch Node Topology
+    Netswatch Dashboard
   </h2>
-  <div id="info"></div>
   <div id="topo"></div>
+  <div id="info"></div>
   <script type="text/javascript" src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

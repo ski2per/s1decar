@@ -129,8 +129,12 @@ def generate_nodes(raw_nodes):
             "label": f"{hostname}",
             "group": raw["group"],
             "title": f"<h4>Hostname: {hostname}</h4><h4>Host IP: {host_ip}</h4><h4>Net: {raw['ip']}</h4>",
-            # "title": raw["node_type"],
-            # "title": f"<h3>{hostname}</h3><h4>{raw['ip']}</h4>",
+            # Add additional info for dashboard
+            "hostip": host_ip,
+            "location": raw["org"],
+            "hostname": hostname,
+            "net": raw["ip"],
+            "nodetype": raw["node_type"],
         }
 
         if raw["node_type"] == "router":
