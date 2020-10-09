@@ -5,6 +5,7 @@ import logging
 import itertools
 import requests
 from flask import Flask, render_template, jsonify
+from urllib3.exceptions import NewConnectionError, MaxRetryError
 
 app = Flask(__name__)
 
@@ -86,30 +87,36 @@ def extract_node_info(subnet):
 
 def load_nodes():
     raw_nodes = []
-    response = requests.get(SUBNET_API, auth=(ETCD_USERNAME, ETCD_PASSWORD), params={"recursive": "true"})
+    try:
+        response = requests.get(SUBNET_API, auth=(ETCD_USERNAME, ETCD_PASSWORD), params={"recursive": "true"})
+        if response.status_code == 200:
+            idx = 1
+            orgs = {}
 
-    if response.status_code == 200:
-        idx = 1
-        orgs = {}
+            for node in parse_etcd_payload(response.text):
+                org, ip, node_type, meta = extract_node_info(node)
+                if org not in orgs:
+                    orgs[org] = len(orgs) + 1
+                grp = orgs[org]
+                raw_nodes.append({
+                    "id": idx,
+                    "ip": ip,
+                    "org": org,
+                    "group": grp,
+                    "node_type": node_type,
+                    "meta": meta,
+                })
+                idx += 1
+        else:
+            print("Error loading nodes")
+            print(response.text)
+    except Exception as err:
+        print(err)
 
-        for node in parse_etcd_payload(response.text):
-            org, ip, node_type, meta = extract_node_info(node)
-            if org not in orgs:
-                orgs[org] = len(orgs) + 1
-            grp = orgs[org]
-            raw_nodes.append({
-                "id": idx,
-                "ip": ip,
-                "org": org,
-                "group": grp,
-                "node_type": node_type,
-                "meta": meta,
-            })
-            idx += 1
-    else:
-        print("Error loading nodes")
-        print(response.text)
     return raw_nodes
+
+
+
 
 
 def generate_nodes(raw_nodes):
@@ -199,7 +206,10 @@ def sync_nodes_subnets():
     LOG.info("Synchronize nodes and subnets")
     all_nodes = {}
     subnets_set = set()
-    response = requests.get(SUBNET_API, auth=(ETCD_USERNAME, ETCD_PASSWORD), params={"recursive": "true"})
+    try:
+        response = requests.get(SUBNET_API, auth=(ETCD_USERNAME, ETCD_PASSWORD), params={"recursive": "true"})
+    except Exception as err:
+        print(err)
     if response.status_code == 200:
         data = json.loads(response.text)
         try:
