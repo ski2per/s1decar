@@ -21,7 +21,7 @@ clean:
 ## Create a docker image on disk for a specific arch and tag
 image:
 	@cp $(VERSION_FILE) "$(VERSION_FILE).bak"
-	@sed -i "s/WE724_VERSION/$(TAG)/" $(VERSION_FILE)
+	@sed -i "s/SIDECAR_VERSION/$(TAG)/" $(VERSION_FILE)
 	docker build --no-cache -f Dockerfile -t $(REGISTRY):$(TAG) .
 	@mv "$(VERSION_FILE).bak" $(VERSION_FILE)
 
