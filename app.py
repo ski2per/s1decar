@@ -4,15 +4,15 @@ import json
 import logging
 import itertools
 import requests
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, Blueprint
 from flask_cors import CORS
 from urllib3.exceptions import NewConnectionError, MaxRetryError
 
-app = Flask(__name__)
 
 ETCD_ENDPOINT = os.getenv("ETCD_ENDPOINT", "http://localhost:2379")
 ETCD_USERNAME = os.getenv("ETCD_USERNAME", "")
 ETCD_PASSWORD = os.getenv("ETCD_PASSWORD", "")
+SIDECAR_PREFIX = os.getenv("SIDECAR_PREFIX", "/")
 NODE_API = f"{ETCD_ENDPOINT}/v2/keys/netswatch/network/nodes"
 SUBNET_API = f"{ETCD_ENDPOINT}/v2/keys/netswatch/network/subnets"
 # RAW_NODES = []
@@ -22,6 +22,26 @@ ROUTER_BORDER = "#8AC926"
 ROUTER_SIZE = 20
 
 LOOP = int(os.getenv("LOOP", "60"))  # Main thread loop seconds
+
+class PrefixMiddleware(object):
+
+    def __init__(self, app, prefix=''):
+        self.app = app
+        self.prefix = prefix
+
+    def __call__(self, environ, start_response):
+
+        if environ['PATH_INFO'].startswith(self.prefix):
+            environ['PATH_INFO'] = environ['PATH_INFO'][len(self.prefix):]
+            environ['SCRIPT_NAME'] = self.prefix
+            return self.app(environ, start_response)
+        else:
+            start_response('404', [('Content-Type', 'text/plain')])
+            return ["This url does not belong to the app.".encode()]
+
+app = Flask(__name__)
+app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix=f"/{SIDECAR_PREFIX}")
+#bp = Blueprint("bprefix", __name__, template_folder="templates", static_folder=f"/{SIDECAR_PREFIX}/static")
 
 
 def logger(name='sidecar'):
@@ -267,14 +287,15 @@ def sync_nodes_subnets():
             LOG.critical(response)
 
 
+# @bp.route('/')
 @app.route('/')
 def index():
-    return render_template("index.html")
+    return render_template("index.html", prefix=SIDECAR_PREFIX)
 
 cors = CORS(app, resources={r"/grafana-iframe": {"origins": "*"}})
 @app.route('/grafana-iframe')
 def grafana_iframe():
-    return render_template("grafana.html")
+    return render_template("grafana.html", prefix=SIDECAR_PREFIX)
 
 
 @app.route('/topo')
@@ -288,6 +309,7 @@ def generate_topology():
     }
     return topo
 
+# app.register_blueprint(bp, url_prefix=f"/{SIDECAR_PREFIX}")
 
 if __name__ == "__main__":
     # flask_thread = threading.Thread(target=app.run, kwargs={"host": "0.0.0.0"})

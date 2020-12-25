@@ -2,9 +2,9 @@
 <html>
 <head>
   <title>Netswatch Dashboard</title>
-  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-  <script type="text/javascript" src="{{ url_for('static', filename='vis-network.min.js') }}"></script>
-  <script type="text/javascript" src="{{ url_for('static', filename='axios.min.js') }}"></script>
+  <link rel="shortcut icon" href="{{ url_for('.static', filename='favicon.ico') }}">
+  <script type="text/javascript" src="{{ url_for('.static', filename='vis-network.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('.static', filename='axios.min.js') }}"></script>
   <style type="text/css">
     #topo {
         width: 100%;
@@ -41,6 +41,6 @@
 </head>
 <body>
   <div id="topo"></div>
-  <script type="text/javascript" src="{{ url_for('static', filename='app.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('.static', filename='app.js') }}"></script>
 </body>
 </html>
