@@ -124,9 +124,9 @@ function drawNode() {
 */
 
 function main() {
-    var currentURL = window.location.href
+    var currentOrigin = window.location.origin
     Promise.all([
-        axios.get(`${currentURL}topo`),
+        axios.get(`${currentOrigin}/topo`),
     ])
     .then(function(response){
         var nodes = new vis.DataSet(response[0].data.nodes);
@@ -216,7 +216,9 @@ function main() {
 
         var tableEnd = "</table>"
 
-        info_element.innerHTML = summaryHTML + tableHeader + tableBody + tableEnd
+        if ( !(Object.keys(info_element).length === 0 && info_element.constructor === Object) ) {
+          info_element.innerHTML = summaryHTML + tableHeader + tableBody + tableEnd
+        }
 
     })
     .catch(function(error){

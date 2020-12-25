@@ -5,6 +5,7 @@ import logging
 import itertools
 import requests
 from flask import Flask, render_template, jsonify
+from flask_cors import CORS
 from urllib3.exceptions import NewConnectionError, MaxRetryError
 
 app = Flask(__name__)
@@ -269,6 +270,11 @@ def sync_nodes_subnets():
 @app.route('/')
 def index():
     return render_template("index.html")
+
+cors = CORS(app, resources={r"/grafana-iframe": {"origins": "*"}})
+@app.route('/grafana-iframe')
+def grafana_iframe():
+    return render_template("grafana.html")
 
 
 @app.route('/topo')
