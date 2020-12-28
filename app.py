@@ -12,7 +12,8 @@ from urllib3.exceptions import NewConnectionError, MaxRetryError
 ETCD_ENDPOINT = os.getenv("ETCD_ENDPOINT", "http://localhost:2379")
 ETCD_USERNAME = os.getenv("ETCD_USERNAME", "")
 ETCD_PASSWORD = os.getenv("ETCD_PASSWORD", "")
-SIDECAR_PREFIX = os.getenv("SIDECAR_PREFIX", "/")
+SIDECAR_PREFIX = os.getenv("SIDECAR_PREFIX", "sidecar")
+NODE_LABEL_COLOR = os.getenv("NODE_LABEL_COLOR", "#d8d9da")
 NODE_API = f"{ETCD_ENDPOINT}/v2/keys/netswatch/network/nodes"
 SUBNET_API = f"{ETCD_ENDPOINT}/v2/keys/netswatch/network/subnets"
 # RAW_NODES = []
@@ -30,7 +31,6 @@ class PrefixMiddleware(object):
         self.prefix = prefix
 
     def __call__(self, environ, start_response):
-        print(environ)
         if environ['PATH_INFO'].startswith(self.prefix):
             environ['PATH_INFO'] = environ['PATH_INFO'][len(self.prefix):]
             environ['SCRIPT_NAME'] = self.prefix
@@ -156,6 +156,9 @@ def generate_nodes(raw_nodes):
             "hostname": hostname,
             "net": raw["ip"],
             "nodetype": raw["node_type"],
+            "font": {
+                "color": NODE_LABEL_COLOR,
+            }
         }
 
         if raw["node_type"] == "router":
