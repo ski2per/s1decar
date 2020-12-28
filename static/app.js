@@ -124,10 +124,10 @@ function drawNode() {
 */
 
 function main() {
-//    var currentOrigin = window.location.origin
-    var currentOrigin = window.location.href
+    var currentOrigin = window.location.origin;
+    var currentPrefix = window.location.pathname.split('/')[1]
     Promise.all([
-        axios.get(`${currentOrigin}topo`),
+        axios.get(`${currentOrigin}/${currentPrefix}/topo`),
     ])
     .then(function(response){
         var nodes = new vis.DataSet(response[0].data.nodes);
