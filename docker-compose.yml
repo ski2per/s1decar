@@ -2,15 +2,12 @@ version: "3.5"
 
 services:
   sidecar:
-    build:
-      context: ./
-      dockerfile: Dockerfile
-    image: docker.cetcxl.local/netswatch:sidecar
+    image: docker.cetcxl.local/sidecar:1.0.5
     environment:
-      - ETCD_ENDPOINT=http://localhost:2379
-      - ETCD_USERNAME=flannel
-      - ETCD_PASSWORD=flannel
-      - LOOP=60
+      - ETCD_ENDPOINT=https://etcd.cetcxl.com
+      - ETCD_USERNAME=nw
+      - ETCD_PASSWORD=P@ssw0rd
+      - SIDECAR_PREFIX=sidecar
     ports:
-      - "5000:5000"
+      - "6000:5000"
     restart: always
